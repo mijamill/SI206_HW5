@@ -40,20 +40,42 @@ consumer_key = twitter_info.consumer_key
 consumer_secret = twitter_info.consumer_secret
 access_token = twitter_info.access_token
 access_token_secret = twitter_info.access_token_secret
+
+def get_with_caching(phrase, cache_phrases):
+    # This function performs steps 1, 2, and 3 of the caching pattern
+    # detailed above.
+    # step 1
+    if phrase in cache_phrases:
+        # step 2
+        return cache_phrases[phrase]
+    else:
+        # step 3
+        results = api.search(q=phrase)
+        cache_phrases[phrase] = results.text
+        return response.text
+        
 ## Set up your authentication to Twitter
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
 api = tweepy.API(auth, parser=tweepy.parsers.JSONParser()) # Set up library to grab stuff from twitter with your authentication, and return it in a JSON-formatted way
 print_list = []
 phrase = input("Input phrase: ")
+
+## NEED TO ADD CHACHE PART
 results = api.search(q=phrase)
 tweet_list = results["statuses"]
+cache_phrases = {}
+
+tweet_list = get_with_caching(phrase, cache_phrases)
+
 for i in range(0, 3):
 	print_list.append(tweet_list[i])
 for tweet in print_list:
 	print("TEXT: ", tweet["text"])
 	print("CREATED AT: ", tweet["created_at"])
 	print("\n")
+
+
 
 ## Write the rest of your code here!
 
