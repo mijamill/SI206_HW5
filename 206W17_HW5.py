@@ -42,39 +42,48 @@ access_token = twitter_info.access_token
 access_token_secret = twitter_info.access_token_secret
 
 def get_with_caching(phrase, cache_phrases):
-    # This function performs steps 1, 2, and 3 of the caching pattern
-    # detailed above.
-    # step 1
     if phrase in cache_phrases:
-        # step 2
         return cache_phrases[phrase]
     else:
-        # step 3
         results = api.search(q=phrase)
         cache_phrases[phrase] = results.text
         return response.text
         
-## Set up your authentication to Twitter
+#Authetication
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
 api = tweepy.API(auth, parser=tweepy.parsers.JSONParser()) # Set up library to grab stuff from twitter with your authentication, and return it in a JSON-formatted way
+
+#Variables needed to execute code
 print_list = []
+cached_list = {}
+#Creating Cache list
+try:
+	fileref = open("cache_searches.txt", "r", encoding = 'utf-8')
+	cached_list = json.loads(fileref.read())
+	fileref.close()
+except:
+	fileref = open("cache_searches.txt", "w", encoding = 'utf-8')
+
 phrase = input("Input phrase: ")
 
-## NEED TO ADD CHACHE PART
-results = api.search(q=phrase)
-tweet_list = results["statuses"]
-cache_phrases = {}
-
-tweet_list = get_with_caching(phrase, cache_phrases)
-
-for i in range(0, 3):
-	print_list.append(tweet_list[i])
-for tweet in print_list:
-	print("TEXT: ", tweet["text"])
-	print("CREATED AT: ", tweet["created_at"])
-	print("\n")
-
+if phrase in cached_list.keys():
+	#print result from cached list
+	print("running")
+else:
+	results = api.search(q=phrase)
+	tweet_list = results["statuses"]
+	for i in range(0, 3):
+		print_list.append(tweet_list[i])
+	for tweet in print_list:
+		print("TEXT: ", tweet["text"])
+		print("CREATED AT: ", tweet["created_at"])
+		print("\n")
+	cached_list = print_list
+	fileref.write(cached_list)
+	
+if fileref.closed:
+	fileref.close()
 
 
 ## Write the rest of your code here!
