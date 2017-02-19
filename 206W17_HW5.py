@@ -40,63 +40,47 @@ consumer_key = twitter_info.consumer_key
 consumer_secret = twitter_info.consumer_secret
 access_token = twitter_info.access_token
 access_token_secret = twitter_info.access_token_secret
-
-def get_with_caching(phrase, cache_phrases):
-    if phrase in cache_phrases:
-        return cache_phrases[phrase]
-    else:
-        results = api.search(q=phrase)
-        cache_phrases[phrase] = results.text
-        return response.text
-        
-#Authetication
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
-api = tweepy.API(auth, parser=tweepy.parsers.JSONParser()) # Set up library to grab stuff from twitter with your authentication, and return it in a JSON-formatted way
+api = tweepy.API(auth, parser=tweepy.parsers.JSONParser()) 
 
-#Variables needed to execute code
-print_list = []
-cached_list = {}
-#Creating Cache list
+CACHE_FNAME = "cached_data_mike1.txt"
 try:
-	fileref = open("cache_searches.txt", "r", encoding = 'utf-8')
-	cached_list = json.loads(fileref.read())
-	fileref.close()
+	cache_file = open(CACHE_FNAME,'r', encoding = 'utf-8')
+	cache_contents = cache_file.read()
+	CACHE_DICTION = json.loads(cache_contents)
 except:
-	fileref = open("cache_searches.txt", "w", encoding = 'utf-8')
+	CACHE_DICTION = {}
 
-phrase = input("Input phrase: ")
-
-if phrase in cached_list.keys():
-	#print result from cached list
-	print("running")
-else:
-	results = api.search(q=phrase)
-	tweet_list = results["statuses"]
-	for i in range(0, 3):
-		print_list.append(tweet_list[i])
-	for tweet in print_list:
-		print("TEXT: ", tweet["text"])
-		print("CREATED AT: ", tweet["created_at"])
-		print("\n")
-	cached_list = print_list
-	fileref.write(cached_list)
-	
-if fileref.closed:
-	fileref.close()
-
-
-## Write the rest of your code here!
-
-#### Recommended order of tasks: ####
-## 1. Set up the caching pattern start -- the dictionary and the try/except statement shown in class.
-## 2. Write a function to get twitter data that works with the caching pattern, so it either gets new data or caches data, depending upon what the input to search for is. You can model this off the class exercise from Tuesday.
-## 3. Invoke your function, save the return value in a variable, and explore the data you got back!
-## 4. With what you learn from the data -- e.g. how exactly to find the text of each tweet in the big nested structure -- write code to print out content from 3 tweets, as shown above.
+def get_tweets_keyword(search_term):
+	unique_identifier = "twitter_{}".format(search_term) # seestring formatting chapter
+	# see if that username+twitter is in the cache diction!
+	if unique_identifier in CACHE_DICTION: # if it is...
+		print('using cached data for', search_term)
+		twitter_results = CACHE_DICTION[unique_identifier] # grab the data from the cache!
+	else:
+		print('getting data from internet for', search_term)
+		twitter_results = api.search(search_term, lan = 'en') # get it from the internet
+		twitter_results = twitter_results["statuses"]
+		CACHE_DICTION[unique_identifier] = twitter_results # add it to the dictionary -- new key-val pair
+		# and then write the whole cache dictionary, now with new info added, to the file, so it'll be there even after your program closes!
+		f = open(CACHE_FNAME,'w', encoding = 'utf-8') # open the cache file for writing
+		f.write(json.dumps(CACHE_DICTION)) # make the whole dictionary holding data and unique identifiers into a json-formatted string, and write that wholllle string to a file so you'll have it next time!
+		f.close()
+	# now no matter what, you have what you need in the twitter_results variable still, go back to what we were doing!
+	tweet_texts = [] # collect 'em all!
+	for tweet in twitter_results:
+		tweet_texts.append(tweet)
+	return tweet_texts[:3]
 
 
-
-
+# Let's take a look at the output in a nice way...
+user_input_term = input("Input phrase: ")
+three_tweets = {}
+three_tweets = get_tweets_keyword(user_input_term) # try with your own username, too! or other umich usernames!
+for t in three_tweets:
+	print("TEXT: ", t["text"].encode('utf-8'))
+	print("CREATED AT: ", t["created_at"])
 
 
 
