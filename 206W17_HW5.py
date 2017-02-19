@@ -3,11 +3,12 @@ import tweepy
 import requests
 import json
 import twitter_info
+import codecs
 
 ## SI 206 - W17 - HW5
 ## COMMENT WITH:
 ## Your section day/time:
-## Any names of people you worked with on this assignment:
+## Any names of people you worked with on this assignment: Jon Bain
 
 ######## 500 points total ########
 
@@ -36,6 +37,10 @@ import twitter_info
 ## **** If you choose not to do that, we strongly advise using authentication information for an 'extra' Twitter account you make just for this class, and not your personal account, because it's not ideal to share your authentication information for a real account that you use frequently.
 
 ## Get your secret values to authenticate to Twitter. You may replace each of these with variables rather than filling in the empty strings if you choose to do the secure way for 50 EC points
+
+## CODE WRITTEN BELOW
+
+# Info neccessary to access twitter
 consumer_key = twitter_info.consumer_key
 consumer_secret = twitter_info.consumer_secret
 access_token = twitter_info.access_token
@@ -44,7 +49,8 @@ auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
 api = tweepy.API(auth, parser=tweepy.parsers.JSONParser()) 
 
-CACHE_FNAME = "cached_data_mike1.txt"
+# Name of cache file to ease searching, attempt to open it if it exists
+CACHE_FNAME = "cached_data_hw5.txt"
 try:
 	cache_file = open(CACHE_FNAME,'r', encoding = 'utf-8')
 	cache_contents = cache_file.read()
@@ -52,33 +58,39 @@ try:
 except:
 	CACHE_DICTION = {}
 
+# Function to search twitter for tweets with a given search term
 def get_tweets_keyword(search_term):
-	unique_identifier = "twitter_{}".format(search_term) # seestring formatting chapter
-	# see if that username+twitter is in the cache diction!
-	if unique_identifier in CACHE_DICTION: # if it is...
-		print('using cached data for', search_term)
-		twitter_results = CACHE_DICTION[unique_identifier] # grab the data from the cache!
+	unique_identifier = "twitter_{}".format(search_term)
+	# Checks if the search term already exists in the cache
+	if unique_identifier in CACHE_DICTION:
+		twitter_results = CACHE_DICTION[unique_identifier]
 	else:
-		print('getting data from internet for', search_term)
-		twitter_results = api.search(search_term) # get it from the internet
+		twitter_results = api.search(search_term)
 		twitter_results = twitter_results["statuses"]
-		CACHE_DICTION[unique_identifier] = twitter_results # add it to the dictionary -- new key-val pair
-		# and then write the whole cache dictionary, now with new info added, to the file, so it'll be there even after your program closes!
-		f = open(CACHE_FNAME,'w', encoding = 'utf-8') # open the cache file for writing
-		f.write(json.dumps(CACHE_DICTION)) # make the whole dictionary holding data and unique identifiers into a json-formatted string, and write that wholllle string to a file so you'll have it next time!
+		twitter_results = twitter_results
+		CACHE_DICTION[unique_identifier] = twitter_results 
+		# Since keyword did not exist, need to write results to cache
+		f = open(CACHE_FNAME,'w', encoding = 'utf-8') 
+		f.write(json.dumps(CACHE_DICTION))
 		f.close()
-	# now no matter what, you have what you need in the twitter_results variable still, go back to what we were doing!
-	tweet_texts = [] # collect 'em all!
+	# Now takes results from if-else statement, stores tweets in tweet_texts to return for printing
+	tweet_texts = []
 	for tweet in twitter_results:
 		tweet_texts.append(tweet)
 	return tweet_texts[:3]
 
-
-# Let's take a look at the output in a nice way...
+# Collects user input
 user_input_term = input("Input phrase: ")
 three_tweets = {}
-three_tweets = get_tweets_keyword(user_input_term) # try with your own username, too! or other umich usernames!
+three_tweets = get_tweets_keyword(user_input_term)
+# Loops through tweets
 for t in three_tweets:
-	print("TEXT: ", t["text"].encode('utf-8'))
-	print("CREATED AT: ", t["created_at"])
 	print('\n')
+	string_to_print = t["text"].encode('utf-8')
+	# If possible, decodes string to print, else just prints with utf-8 encoding
+	print("Text: ", end = '')
+	try:
+		print(string_to_print.decode('utf-8'))
+	except:
+		print(string_to_print)
+	print("CREATED AT: ", t["created_at"])
