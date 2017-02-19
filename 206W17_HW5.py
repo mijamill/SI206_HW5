@@ -60,7 +60,7 @@ def get_tweets_keyword(search_term):
 		twitter_results = CACHE_DICTION[unique_identifier] # grab the data from the cache!
 	else:
 		print('getting data from internet for', search_term)
-		twitter_results = api.search(search_term, lan = 'en') # get it from the internet
+		twitter_results = api.search(search_term) # get it from the internet
 		twitter_results = twitter_results["statuses"]
 		CACHE_DICTION[unique_identifier] = twitter_results # add it to the dictionary -- new key-val pair
 		# and then write the whole cache dictionary, now with new info added, to the file, so it'll be there even after your program closes!
@@ -81,7 +81,4 @@ three_tweets = get_tweets_keyword(user_input_term) # try with your own username,
 for t in three_tweets:
 	print("TEXT: ", t["text"].encode('utf-8'))
 	print("CREATED AT: ", t["created_at"])
-
-
-
-
+	print('\n')
